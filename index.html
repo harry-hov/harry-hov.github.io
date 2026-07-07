@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hariom Verma — Golang Developer, open-source contributor. Interactive terminal portfolio." />
+  <meta name="author" content="Hariom Verma" />
+  <meta name="theme-color" content="#0a0e14" />
+  <meta property="og:title" content="hariom@harry-hov — terminal" />
+  <meta property="og:description" content="Interactive terminal portfolio of Hariom Verma (harry-hov)." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://harry-hov.github.io/" />
+  <title>hariom@harry-hov:~$</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>$_</text></svg>" />
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div id="app" class="terminal-window" role="application" aria-label="Interactive terminal portfolio">
+    <header class="titlebar">
+      <div class="traffic-lights" aria-hidden="true">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="titlebar-title">hariom@harry-hov — zsh — ~</div>
+      <div class="titlebar-actions">
+        <button type="button" id="theme-btn" class="icon-btn" title="Toggle theme (Ctrl+T)" aria-label="Toggle color theme">◐</button>
+        <button type="button" id="sound-btn" class="icon-btn" title="Toggle key sounds" aria-label="Toggle key click sounds" aria-pressed="false">♪</button>
+      </div>
+    </header>
+
+    <main id="terminal" class="terminal-body" tabindex="0" aria-live="polite">
+      <div id="output" class="output"></div>
+      <div class="prompt-line" id="prompt-line">
+        <span class="prompt" id="prompt-label">
+          <span class="user">hariom</span><span class="at">@</span><span class="host">harry-hov</span>
+          <span class="colon">:</span><span class="path">~</span><span class="dollar">$</span>
+        </span>
+        <span class="input-wrap">
+          <span id="ghost" class="ghost" aria-hidden="true"></span>
+          <input
+            id="cmdline"
+            class="cmdline"
+            type="text"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            aria-label="Terminal command input"
+            autofocus
+          />
+          <span class="caret" id="caret" aria-hidden="true"></span>
+        </span>
+      </div>
+    </main>
+
+    <footer class="status-bar" aria-hidden="true">
+      <span>TAB complete</span>
+      <span>↑↓ history</span>
+      <span>Ctrl+L clear</span>
+      <span>Ctrl+C cancel</span>
+      <span>type <kbd>help</kbd></span>
+    </footer>
+  </div>
+
+  <script src="terminal.js"></script>
+</body>
+</html>
