@@ -1179,33 +1179,57 @@
     }
   }
 
-  function submitLine() {
+  function focusInput() {
     if (!inputEl) return;
-    const val = inputEl.value;
-    inputEl.value = "";
-    if (ghostEl) ghostEl.textContent = "";
-    execute(val);
-    focusInput();
+    try {
+      inputEl.focus();
+    } catch (_) {}
   }
 
-  // ─── Input handling ───────────────────────────────────────────────────────
-  const promptForm = document.getElementById("prompt-line");
-  if (promptForm) {
-    promptForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      submitLine();
-      return false;
-    });
+  function isEnterKey(e) {
+    // Safari / Mac Return key coverage
+    if (e.isComposing || e.keyCode === 229) return false;
+    return (
+      e.key === "Enter" ||
+      e.key === "Return" ||
+      e.code === "Enter" ||
+      e.code === "NumpadEnter" ||
+      e.keyCode === 13 ||
+      e.which === 13
+    );
   }
 
-  // Capture phase so Enter always runs even if something else steals bubble
-  inputEl.addEventListener(
+  let submitting = false;
+  function submitLine() {
+    if (!inputEl || submitting) return;
+    submitting = true;
+    try {
+      const val = String(inputEl.value || "");
+      inputEl.value = "";
+      if (ghostEl) ghostEl.textContent = "";
+      try {
+        execute(val);
+      } catch (err) {
+        print("error: " + (err && err.message ? err.message : err), "error");
+      }
+      focusInput();
+    } finally {
+      // Safari can re-fire keyup/keydown pairs; unlock next tick
+      setTimeout(function () {
+        submitting = false;
+      }, 0);
+    }
+  }
+
+  // ─── Input handling (Safari-friendly) ─────────────────────────────────────
+  // Window capture: most reliable path for Return/Enter on Safari
+  window.addEventListener(
     "keydown",
-    (e) => {
-      const isEnter =
-        e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.which === 13;
-      if (!isEnter) return;
+    function (e) {
+      if (!isEnterKey(e)) return;
+      // allow real buttons/links to behave normally
+      var t = e.target;
+      if (t && t.closest && t.closest("button, a, textarea")) return;
       e.preventDefault();
       e.stopPropagation();
       submitLine();
@@ -1213,14 +1237,27 @@
     true
   );
 
-  inputEl.addEventListener("keydown", (e) => {
-    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) clickSound();
-
-    const isEnter =
-      e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.which === 13;
-    if (isEnter) {
-      // handled in capture listener
+  // keypress fallback (older Safari paths)
+  window.addEventListener(
+    "keypress",
+    function (e) {
+      if (!isEnterKey(e)) return;
+      var t = e.target;
+      if (t && t.closest && t.closest("button, a, textarea")) return;
       e.preventDefault();
+      submitLine();
+    },
+    true
+  );
+
+  inputEl.addEventListener("keydown", function (e) {
+    if (e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      clickSound();
+    }
+
+    if (isEnterKey(e)) {
+      e.preventDefault();
+      submitLine();
       return;
     }
 
@@ -1237,10 +1274,9 @@
       historyIndex = Math.max(0, historyIndex - 1);
       inputEl.value = history[historyIndex];
       updateGhost();
-      // move cursor to end
-      requestAnimationFrame(() => {
+      setTimeout(function () {
         inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
-      });
+      }, 0);
       return;
     }
 
@@ -1257,7 +1293,7 @@
       e.preventDefault();
       echoPrompt(inputEl.value + "^C");
       inputEl.value = "";
-      ghostEl.textContent = "";
+      if (ghostEl) ghostEl.textContent = "";
       return;
     }
 
@@ -1270,7 +1306,7 @@
     if (e.key === "u" && e.ctrlKey) {
       e.preventDefault();
       inputEl.value = "";
-      ghostEl.textContent = "";
+      if (ghostEl) ghostEl.textContent = "";
       return;
     }
 
@@ -1287,74 +1323,57 @@
       return;
     }
 
-    // defer ghost update for normal keys
-    requestAnimationFrame(updateGhost);
+    setTimeout(updateGhost, 0);
   });
 
   inputEl.addEventListener("input", updateGhost);
 
-  function focusInput() {
-    try {
-      inputEl.focus({ preventScroll: true });
-    } catch (_) {
-      inputEl.focus();
-    }
+  // Click anywhere in terminal focuses input
+  function onSurfaceClick(e) {
+    if (e.target && e.target.closest && e.target.closest("a, button")) return;
+    focusInput();
   }
+  if (terminalEl) terminalEl.addEventListener("click", onSurfaceClick);
+  var appEl = document.getElementById("app");
+  if (appEl) appEl.addEventListener("click", onSurfaceClick);
 
-  // Click anywhere in terminal focuses input (except links / buttons / text selection)
-  terminalEl.addEventListener("click", (e) => {
-    if (e.target.closest("a, button")) return;
-    focusInput();
-  });
-
-  document.getElementById("app")?.addEventListener("click", (e) => {
-    if (e.target.closest("a, button")) return;
-    focusInput();
-  });
-
-  document.addEventListener("keydown", (e) => {
-    const isEnter =
-      e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.which === 13;
-
-    // Always submit from anywhere when Enter is pressed (except real links/buttons)
-    if (isEnter && !e.target.closest("a, button")) {
-      if (e.target !== inputEl) {
-        e.preventDefault();
-        focusInput();
-        submitLine();
-      }
-      return;
-    }
-
+  // Route typing into the command line when focus is elsewhere
+  document.addEventListener("keydown", function (e) {
+    if (isEnterKey(e)) return; // handled by window capture
     if (e.target === inputEl) return;
-    if (e.target.closest("button, a, input, textarea")) return;
-    if (e.metaKey || (e.ctrlKey && e.key !== "l" && e.key !== "c" && e.key !== "u" && e.key !== "w" && e.key !== "t")) return;
-    // Route printable keys and editing keys into the command line
-    if (e.key.length === 1 || e.key === "Backspace" || e.key === "Tab") {
+    if (e.target && e.target.closest && e.target.closest("button, a, input, textarea")) return;
+    if (e.metaKey) return;
+    if (e.ctrlKey && e.key !== "l" && e.key !== "c" && e.key !== "u" && e.key !== "w" && e.key !== "t") return;
+    if ((e.key && e.key.length === 1) || e.key === "Backspace" || e.key === "Tab") {
       focusInput();
     }
   });
 
-  themeBtn.addEventListener("click", () => {
-    cycleTheme();
-    focusInput();
-  });
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      cycleTheme();
+      focusInput();
+    });
+  }
 
-  soundBtn.addEventListener("click", () => {
-    soundOn = !soundOn;
-    soundBtn.setAttribute("aria-pressed", String(soundOn));
-    if (soundOn) clickSound();
-    focusInput();
-  });
+  if (soundBtn) {
+    soundBtn.addEventListener("click", function () {
+      soundOn = !soundOn;
+      soundBtn.setAttribute("aria-pressed", String(soundOn));
+      if (soundOn) clickSound();
+      focusInput();
+    });
+  }
 
   // ─── Boot sequence ────────────────────────────────────────────────────────
   async function boot() {
-    // Keep input enabled so users can type even if animation is interrupted
-    inputEl.readOnly = true;
+    // Never disable/readonly the input (Safari can stick on those states)
+    inputEl.disabled = false;
+    inputEl.readOnly = false;
     focusInput();
 
     try {
-      const lines = [
+      var lines = [
         { text: "PortfolioOS bootloader v1.0 …", cls: "muted", delay: 40 },
         { text: "Loading profile: Hariom Verma … ok", cls: "muted", delay: 30 },
         { text: "Mounting virtual filesystem … ok", cls: "muted", delay: 30 },
@@ -1362,38 +1381,39 @@
         { text: "", cls: "", delay: 20 },
       ];
 
-      for (const line of lines) {
-        await new Promise((r) => setTimeout(r, line.delay));
-        print(line.text, line.cls);
+      for (var i = 0; i < lines.length; i++) {
+        await new Promise(function (r) {
+          setTimeout(r, lines[i].delay);
+        });
+        print(lines[i].text, lines[i].cls);
       }
 
       cmdBanner();
       cmdNeofetch();
       printHTML(
-        `<span class="dim">Welcome. Start with </span><span class="hl">help</span><span class="dim">, </span><span class="hl">about</span><span class="dim">, or </span><span class="hl">ls</span><span class="dim">.</span>`
+        '<span class="dim">Welcome. Start with </span><span class="hl">help</span><span class="dim">, </span><span class="hl">about</span><span class="dim">, or </span><span class="hl">ls</span><span class="dim">. Press </span><span class="hl">Return</span><span class="dim"> to run.</span>'
       );
       printBlank();
     } catch (err) {
-      print(`boot warning: ${err.message || err}`, "warn");
+      print("boot warning: " + (err && err.message ? err.message : err), "warn");
     } finally {
-      inputEl.readOnly = false;
       inputEl.disabled = false;
+      inputEl.readOnly = false;
       focusInput();
     }
   }
 
   // Persist theme preference
   try {
-    const saved = localStorage.getItem("terminal-theme");
-    if (saved && themes.includes(saved)) {
+    var saved = localStorage.getItem("terminal-theme");
+    if (saved && themes.indexOf(saved) !== -1) {
       applyTheme(themes.indexOf(saved), false);
     }
   } catch (_) {}
 
-  // Focus as soon as possible (mobile + desktop)
   focusInput();
   window.addEventListener("load", focusInput);
-  document.addEventListener("visibilitychange", () => {
+  document.addEventListener("visibilitychange", function () {
     if (!document.hidden) focusInput();
   });
 

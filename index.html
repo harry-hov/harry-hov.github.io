@@ -14,14 +14,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=5" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>$_</text></svg>" />
 </head>
 <body>
   <div class="scanlines" aria-hidden="true"></div>
   <div class="vignette" aria-hidden="true"></div>
 
-  <div id="app" class="terminal-window" role="application" aria-label="Interactive terminal portfolio">
+  <div id="app" class="terminal-window" aria-label="Interactive terminal portfolio">
     <header class="titlebar">
       <div class="traffic-lights" aria-hidden="true">
         <span class="dot red"></span>
@@ -37,11 +37,11 @@
 
     <main id="terminal" class="terminal-body">
       <div id="output" class="output" aria-live="polite"></div>
-      <form class="prompt-line" id="prompt-line" action="#" method="get" autocomplete="off">
-        <label class="prompt" id="prompt-label" for="cmdline">
+      <div class="prompt-line" id="prompt-line">
+        <span class="prompt" id="prompt-label">
           <span class="user">hariom</span><span class="at">@</span><span class="host">harry-hov</span>
           <span class="colon">:</span><span class="path">~</span><span class="dollar">$</span>
-        </label>
+        </span>
         <span class="input-wrap">
           <span id="ghost" class="ghost" aria-hidden="true"></span>
           <input
@@ -53,14 +53,12 @@
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
-            enterkeyhint="go"
+            enterkeyhint="send"
             aria-label="Terminal command input"
             autofocus
           />
         </span>
-        <!-- Explicit submit control so Enter always triggers form submit in all browsers -->
-        <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">run</button>
-      </form>
+      </div>
     </main>
 
     <footer class="status-bar" aria-hidden="true">
@@ -72,6 +70,6 @@
     </footer>
   </div>
 
-  <script src="terminal.js"></script>
+  <script src="terminal.js?v=5"></script>
 </body>
 </html>
