@@ -164,13 +164,13 @@
     "~": {
       type: "dir",
       children: {
-        about.txt: { type: "file", content: "about" },
-        experience.txt: { type: "file", content: "experience" },
-        projects.txt: { type: "file", content: "projects" },
-        skills.txt: { type: "file", content: "skills" },
-        education.txt: { type: "file", content: "education" },
-        contact.txt: { type: "file", content: "contact" },
-        resume.pdf: { type: "file", content: "resume-link" },
+        "about.txt": { type: "file", content: "about" },
+        "experience.txt": { type: "file", content: "experience" },
+        "projects.txt": { type: "file", content: "projects" },
+        "skills.txt": { type: "file", content: "skills" },
+        "education.txt": { type: "file", content: "education" },
+        "contact.txt": { type: "file", content: "contact" },
+        "resume.pdf": { type: "file", content: "resume-link" },
         social: {
           type: "dir",
           children: {
@@ -1180,11 +1180,12 @@
   }
 
   function submitLine() {
+    if (!inputEl) return;
     const val = inputEl.value;
     inputEl.value = "";
-    ghostEl.textContent = "";
+    if (ghostEl) ghostEl.textContent = "";
     execute(val);
-    inputEl.focus();
+    focusInput();
   }
 
   // ─── Input handling ───────────────────────────────────────────────────────
@@ -1192,16 +1193,34 @@
   if (promptForm) {
     promptForm.addEventListener("submit", (e) => {
       e.preventDefault();
+      e.stopPropagation();
       submitLine();
+      return false;
     });
   }
+
+  // Capture phase so Enter always runs even if something else steals bubble
+  inputEl.addEventListener(
+    "keydown",
+    (e) => {
+      const isEnter =
+        e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.which === 13;
+      if (!isEnter) return;
+      e.preventDefault();
+      e.stopPropagation();
+      submitLine();
+    },
+    true
+  );
 
   inputEl.addEventListener("keydown", (e) => {
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) clickSound();
 
-    if (e.key === "Enter") {
+    const isEnter =
+      e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.which === 13;
+    if (isEnter) {
+      // handled in capture listener
       e.preventDefault();
-      submitLine();
       return;
     }
 
@@ -1294,11 +1313,24 @@
   });
 
   document.addEventListener("keydown", (e) => {
+    const isEnter =
+      e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.which === 13;
+
+    // Always submit from anywhere when Enter is pressed (except real links/buttons)
+    if (isEnter && !e.target.closest("a, button")) {
+      if (e.target !== inputEl) {
+        e.preventDefault();
+        focusInput();
+        submitLine();
+      }
+      return;
+    }
+
     if (e.target === inputEl) return;
     if (e.target.closest("button, a, input, textarea")) return;
     if (e.metaKey || (e.ctrlKey && e.key !== "l" && e.key !== "c" && e.key !== "u" && e.key !== "w" && e.key !== "t")) return;
     // Route printable keys and editing keys into the command line
-    if (e.key.length === 1 || e.key === "Backspace" || e.key === "Enter" || e.key === "Tab") {
+    if (e.key.length === 1 || e.key === "Backspace" || e.key === "Tab") {
       focusInput();
     }
   });

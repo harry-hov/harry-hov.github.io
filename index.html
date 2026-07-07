@@ -37,7 +37,7 @@
 
     <main id="terminal" class="terminal-body">
       <div id="output" class="output" aria-live="polite"></div>
-      <form class="prompt-line" id="prompt-line" action="javascript:void(0)" autocomplete="off">
+      <form class="prompt-line" id="prompt-line" action="#" method="get" autocomplete="off">
         <label class="prompt" id="prompt-label" for="cmdline">
           <span class="user">hariom</span><span class="at">@</span><span class="host">harry-hov</span>
           <span class="colon">:</span><span class="path">~</span><span class="dollar">$</span>
@@ -58,6 +58,8 @@
             autofocus
           />
         </span>
+        <!-- Explicit submit control so Enter always triggers form submit in all browsers -->
+        <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">run</button>
       </form>
     </main>
 
