@@ -313,7 +313,7 @@
       `<span class="yellow">Role</span><span class="dim">:</span>    Golang Developer`,
       `<span class="yellow">OS</span><span class="dim">:</span>      Portfolio OS 1.0 (zsh)`,
       `<span class="yellow">Shell</span><span class="dim">:</span>   interactive-js`,
-      `<span class="yellow">Host</span><span class="dim">:</span>    harry-hov.github.io`,
+      `<span class="yellow">Host</span><span class="dim">:</span>    hariom.sh`,
       `<span class="yellow">Locale</span><span class="dim">:</span>  ${escapeHtml(PROFILE.location)}`,
       `<span class="yellow">Status</span><span class="dim">:</span>  ${PROFILE.hireable ? '<span class="success">open to opportunities</span>' : "employed"}`,
       `<span class="yellow">GitHub</span><span class="dim">:</span>  ${link(PROFILE.github, "harry-hov")}`,
