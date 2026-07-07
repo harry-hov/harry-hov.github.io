@@ -35,29 +35,30 @@
       </div>
     </header>
 
-    <main id="terminal" class="terminal-body" tabindex="0" aria-live="polite">
-      <div id="output" class="output"></div>
-      <div class="prompt-line" id="prompt-line">
-        <span class="prompt" id="prompt-label">
+    <main id="terminal" class="terminal-body">
+      <div id="output" class="output" aria-live="polite"></div>
+      <form class="prompt-line" id="prompt-line" action="javascript:void(0)" autocomplete="off">
+        <label class="prompt" id="prompt-label" for="cmdline">
           <span class="user">hariom</span><span class="at">@</span><span class="host">harry-hov</span>
           <span class="colon">:</span><span class="path">~</span><span class="dollar">$</span>
-        </span>
+        </label>
         <span class="input-wrap">
           <span id="ghost" class="ghost" aria-hidden="true"></span>
           <input
             id="cmdline"
             class="cmdline"
+            name="cmd"
             type="text"
             autocomplete="off"
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
+            enterkeyhint="go"
             aria-label="Terminal command input"
             autofocus
           />
-          <span class="caret" id="caret" aria-hidden="true"></span>
         </span>
-      </div>
+      </form>
     </main>
 
     <footer class="status-bar" aria-hidden="true">

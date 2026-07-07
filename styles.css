@@ -321,10 +321,11 @@ body {
 
 .prompt-line {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
+  flex-wrap: nowrap;
+  align-items: center;
   margin-top: 2px;
   gap: 0;
+  width: 100%;
 }
 
 .prompt {
@@ -342,75 +343,61 @@ body {
 
 .input-wrap {
   position: relative;
-  flex: 1;
-  min-width: 120px;
-  display: inline-flex;
-  align-items: baseline;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
 }
 
 .cmdline {
+  display: block;
   font: inherit;
+  font-size: inherit;
+  line-height: inherit;
   color: var(--text);
   background: transparent;
   border: none;
   outline: none;
   width: 100%;
-  min-width: 2ch;
-  caret-color: transparent;
+  min-width: 1ch;
+  /* Native caret sits after typed text (left side of free space) */
+  caret-color: var(--green-bright);
   padding: 0;
   margin: 0;
   position: relative;
   z-index: 2;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+.cmdline:disabled {
+  opacity: 1;
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
 }
 
 .cmdline::selection {
   background: var(--selection);
 }
 
+/* Tab-completion hint only (typed text stays in the real input) */
 .ghost {
   position: absolute;
   left: 0;
   top: 0;
+  right: 0;
   color: var(--text-dim);
-  opacity: 0.45;
+  opacity: 0.4;
   pointer-events: none;
   white-space: pre;
-  z-index: 1;
   overflow: hidden;
+  z-index: 1;
+  font: inherit;
+  line-height: inherit;
 }
 
 .caret {
   display: none;
-}
-
-/* Custom blinking block caret via input focus styling handled in JS width trick —
-   we use the native transparent caret and a pseudo block after typed text via CSS */
-.input-wrap::after {
-  content: "";
-  display: inline-block;
-  width: 0.6ch;
-  height: 1.15em;
-  background: var(--green-bright);
-  margin-left: -0.05ch;
-  vertical-align: text-bottom;
-  animation: blink 1.05s step-end infinite;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.terminal-body:focus-within .input-wrap::after,
-body.focused .input-wrap::after {
-  opacity: 1;
-}
-
-.cmdline:focus ~ .input-wrap::after,
-.input-wrap:focus-within::after {
-  opacity: 1;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
 }
 
 .status-bar {
@@ -464,7 +451,6 @@ body.focused .input-wrap::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .input-wrap::after { animation: none; opacity: 1; }
   .boot-line { animation: none; opacity: 1; }
   .terminal-body { scroll-behavior: auto; }
 }

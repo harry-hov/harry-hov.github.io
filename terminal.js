@@ -1179,16 +1179,29 @@
     }
   }
 
+  function submitLine() {
+    const val = inputEl.value;
+    inputEl.value = "";
+    ghostEl.textContent = "";
+    execute(val);
+    inputEl.focus();
+  }
+
   // ─── Input handling ───────────────────────────────────────────────────────
+  const promptForm = document.getElementById("prompt-line");
+  if (promptForm) {
+    promptForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      submitLine();
+    });
+  }
+
   inputEl.addEventListener("keydown", (e) => {
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) clickSound();
 
     if (e.key === "Enter") {
       e.preventDefault();
-      const val = inputEl.value;
-      inputEl.value = "";
-      ghostEl.textContent = "";
-      execute(val);
+      submitLine();
       return;
     }
 
@@ -1261,59 +1274,80 @@
 
   inputEl.addEventListener("input", updateGhost);
 
-  // Click anywhere in terminal focuses input
+  function focusInput() {
+    try {
+      inputEl.focus({ preventScroll: true });
+    } catch (_) {
+      inputEl.focus();
+    }
+  }
+
+  // Click anywhere in terminal focuses input (except links / buttons / text selection)
   terminalEl.addEventListener("click", (e) => {
-    if (e.target.tagName === "A") return;
-    inputEl.focus();
+    if (e.target.closest("a, button")) return;
+    focusInput();
+  });
+
+  document.getElementById("app")?.addEventListener("click", (e) => {
+    if (e.target.closest("a, button")) return;
+    focusInput();
   });
 
   document.addEventListener("keydown", (e) => {
-    // global focus trap-ish: if typing and not in input, focus it
     if (e.target === inputEl) return;
-    if (e.target.tagName === "BUTTON") return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key.length === 1 || e.key === "Backspace" || e.key === "Enter") {
-      inputEl.focus();
+    if (e.target.closest("button, a, input, textarea")) return;
+    if (e.metaKey || (e.ctrlKey && e.key !== "l" && e.key !== "c" && e.key !== "u" && e.key !== "w" && e.key !== "t")) return;
+    // Route printable keys and editing keys into the command line
+    if (e.key.length === 1 || e.key === "Backspace" || e.key === "Enter" || e.key === "Tab") {
+      focusInput();
     }
   });
 
   themeBtn.addEventListener("click", () => {
     cycleTheme();
-    inputEl.focus();
+    focusInput();
   });
 
   soundBtn.addEventListener("click", () => {
     soundOn = !soundOn;
     soundBtn.setAttribute("aria-pressed", String(soundOn));
     if (soundOn) clickSound();
-    inputEl.focus();
+    focusInput();
   });
 
   // ─── Boot sequence ────────────────────────────────────────────────────────
   async function boot() {
-    inputEl.disabled = true;
-    const lines = [
-      { text: "PortfolioOS bootloader v1.0 …", cls: "muted", delay: 80 },
-      { text: "Loading profile: Hariom Verma … ok", cls: "muted", delay: 60 },
-      { text: "Mounting virtual filesystem … ok", cls: "muted", delay: 50 },
-      { text: "Starting interactive shell …", cls: "muted", delay: 80 },
-      { text: "", cls: "", delay: 40 },
-    ];
+    // Keep input enabled so users can type even if animation is interrupted
+    inputEl.readOnly = true;
+    focusInput();
 
-    for (const line of lines) {
-      await new Promise((r) => setTimeout(r, line.delay));
-      print(line.text, line.cls);
+    try {
+      const lines = [
+        { text: "PortfolioOS bootloader v1.0 …", cls: "muted", delay: 40 },
+        { text: "Loading profile: Hariom Verma … ok", cls: "muted", delay: 30 },
+        { text: "Mounting virtual filesystem … ok", cls: "muted", delay: 30 },
+        { text: "Starting interactive shell …", cls: "muted", delay: 40 },
+        { text: "", cls: "", delay: 20 },
+      ];
+
+      for (const line of lines) {
+        await new Promise((r) => setTimeout(r, line.delay));
+        print(line.text, line.cls);
+      }
+
+      cmdBanner();
+      cmdNeofetch();
+      printHTML(
+        `<span class="dim">Welcome. Start with </span><span class="hl">help</span><span class="dim">, </span><span class="hl">about</span><span class="dim">, or </span><span class="hl">ls</span><span class="dim">.</span>`
+      );
+      printBlank();
+    } catch (err) {
+      print(`boot warning: ${err.message || err}`, "warn");
+    } finally {
+      inputEl.readOnly = false;
+      inputEl.disabled = false;
+      focusInput();
     }
-
-    cmdBanner();
-    cmdNeofetch();
-    printHTML(
-      `<span class="dim">Welcome. Start with </span><span class="hl">help</span><span class="dim">, </span><span class="hl">about</span><span class="dim">, or </span><span class="hl">ls</span><span class="dim">.</span>`
-    );
-    printBlank();
-
-    inputEl.disabled = false;
-    inputEl.focus();
   }
 
   // Persist theme preference
@@ -1323,6 +1357,13 @@
       applyTheme(themes.indexOf(saved), false);
     }
   } catch (_) {}
+
+  // Focus as soon as possible (mobile + desktop)
+  focusInput();
+  window.addEventListener("load", focusInput);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) focusInput();
+  });
 
   boot();
 })();
