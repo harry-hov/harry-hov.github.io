@@ -2,7 +2,7 @@
 
 Interactive **terminal-style** portfolio for [Hariom Verma](https://github.com/harry-hov).
 
-**Live:** https://harry-hov.github.io
+**Live:** https://hariom.sh
 
 ## Features
 

@@ -16,7 +16,7 @@
     github: "https://github.com/harry-hov",
     linkedin: "https://linkedin.com/in/hariom-verma/",
     twitter: "https://x.com/_hariomverma",
-    website: "https://harry-hov.github.io",
+    website: "https://hariom.sh",
     hireable: true,
   };
 
