@@ -1079,21 +1079,21 @@
   function updateGhost() {
     const val = inputEl.value;
     const comps = getCompletions(val);
-    if (comps.length === 1) {
-      const parts = val.trimStart().split(/\s+/);
-      const endsWithSpace = /\s$/.test(val);
-      let suggestion = "";
-      if (parts.length <= 1 && !endsWithSpace) {
-        suggestion = comps[0].slice(parts[0].length);
-      } else {
-        const partial = endsWithSpace ? "" : parts[parts.length - 1];
-        suggestion = comps[0].slice(partial.length);
-      }
-      // show full line with dim completion
-      ghostEl.textContent = val + suggestion;
-    } else {
+    if (comps.length !== 1) {
       ghostEl.textContent = "";
+      return;
     }
+    const parts = val.trimStart().split(/\s+/);
+    const endsWithSpace = /\s$/.test(val);
+    let suggestion = "";
+    if (parts.length <= 1 && !endsWithSpace) {
+      suggestion = comps[0].slice(parts[0].length);
+    } else {
+      const partial = endsWithSpace ? "" : (parts[parts.length - 1] || "");
+      suggestion = comps[0].slice(partial.length);
+    }
+    // Invisible spacer for typed chars + dim completion suffix (monospace)
+    ghostEl.textContent = suggestion ? " ".repeat(val.length) + suggestion : "";
   }
 
   function applyCompletion() {
